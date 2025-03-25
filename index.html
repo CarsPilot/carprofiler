@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Car Finder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    .chat-box {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 5px;
+      background: #fafafa;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .user {
+      text-align: right;
+      color: #1a73e8;
+    }
+    .bot {
+      text-align: left;
+      color: #222;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1669c1;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-box" id="chatBox">
+      <div class="message bot">CarProfiler: Let's discover your wonderfully unique driving personality. First question: Do you enjoy telling people what to do, or would you rather quietly judge their incompetence?</div>
+    </div>
+    <input type="text" id="userInput" placeholder="Type your answer here..." />
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="resetChat()" style="background:#888; margin-top:5px;">Reset</button>
+  </div>
+
+  <script>
+    let chatBox = document.getElementById('chatBox');
+    let userInput = document.getElementById('userInput');
+    let messages = [
+      {
+        role: 'system',
+        content: `You are a witty, charismatic British car expert – think Jeremy Clarkson's humour, but always respectful and upbeat. Ask 5 clever and friendly questions to understand the user's personality style using the DISC model (Red, Yellow, Green, Blue).
+
+Once you have an idea of their type, suggest exactly ONE petrol or diesel-powered car from this list (no electric vehicles):
+
+- Red (Dominant): Ford Mustang GT – bold, fast, and always leading the way.
+- Yellow (Influential): Jeep Wrangler Rubicon – adventurous, social, and full of energy.
+- Green (Steady): Toyota Land Cruiser – calm, dependable, and quietly powerful.
+- Blue (Conscientious): BMW M3 – precise, structured, and masterfully engineered.
+- Bonus: Aston Martin V8 Vantage – stylish, thoughtful, and deeply impressive.
+
+Describe both their personality and the car in a positive, humorous, and engaging way. Keep the tone cheeky but always uplifting. Avoid any insulting or negative language. Never mention electric vehicles. Be charming. Be classy. Be Clarkson-ish.`
+      },
+      {
+        role: 'assistant',
+        content: "Let's discover your wonderfully unique driving personality. First question: Do you enjoy telling people what to do, or would you rather quietly judge their incompetence?"
+      }
+    ];
+
+    async function sendMessage() {
+      const input = userInput.value;
+      if (!input) return;
+
+      addMessage('user', input);
+      messages.push({ role: 'user', content: input });
+      userInput.value = '';
+
+      const response = await fetch('/.netlify/functions/chatgpt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer YOUR_OPENAI_API_KEY' // Replace this
+        },
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages: messages,
+          max_tokens: 300,
+          temperature: 0.85
+        })
+      });
+
+      const data = await response.json();
+      const reply = data.choices[0].message.content;
+      messages.push({ role: 'assistant', content: reply });
+      addMessage('bot', reply);
+    }
+
+    function addMessage(sender, text) {
+      const div = document.createElement('div');
+      div.className = `message ${sender}`;
+      div.textContent = `${sender === 'user' ? 'You' : 'CarProfilerGPT'}: ${text}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function resetChat() {
+      chatBox.innerHTML = '';
+      messages = [
+        {
+          role: 'system',
+          content: messages[0].content
+        },
+        {
+          role: 'assistant',
+          content: "Let's discover your wonderfully unique driving personality. First question: Do you enjoy telling people what to do, or would you rather quietly judge their incompetence?"
+        }
+      ];
+      addMessage('bot', messages[1].content);
+    }
+  </script>
+</body>
+</html>

@@ -130,7 +130,7 @@ Describe both their personality and the car in a positive, humorous, and engagin
     function addMessage(sender, text) {
       const div = document.createElement('div');
       div.className = `message ${sender}`;
-      div.textContent = `${sender === 'user' ? 'You' : 'CarProfilerGPT'}: ${text}`;
+      div.textContent = `${sender === 'user' ? 'You' : 'CarProfiler'}: ${text}`;
       chatBox.appendChild(div);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
